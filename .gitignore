@@ -6,7 +6,9 @@
 *.ko
 *.obj
 *.elf
-out.txt
+
+# Dummy files
+*.txt
 
 # Linker output
 *.ilk

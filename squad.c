@@ -1,37 +1,25 @@
+// Header guards.
+#ifndef STDIO_H
+#define STDIO_H
 #include <stdio.h>
+#endif
+
 #include <stdlib.h>
 #include <time.h>
+#include "file.h"
 #include "omp.h"
 
-#define MAX_LINE_LENGTH 1<<9
-
-// Struct containing the file pointer and size.
-typedef struct _file{
-    FILE *fp;
-    int size;
-} file;
-
-// Gets file from path and calculate it's size.
-file getFile(char *path){
-    file f;
-    char buffer[MAX_LINE_LENGTH];
-    f.fp = fopen(path, "r");
-    f.size = 0;
-    while(fgets(buffer, MAX_LINE_LENGTH, f.fp) != NULL) f.size++;
-    rewind(f.fp);
-    return f;
-}
-
-// Removes the character '\n' from the end of string
+// Removes the character '\n' from the end of string.
 void rem_new_line(char *s){
     int i = 0;
     while(s[i] != '\n') i++;
     s[i] = '\0';
 }
 
-// Gets a random word from file, and writes it into buffer
+// Gets a random word from file, and writes it into buffer.
 int get_random_word(file f, char *buffer){
     int line = rand() % f.size, i = 0;
+
     while(fgets(buffer, MAX_LINE_LENGTH, f.fp) != NULL){
         if(line == i){
             rewind(f.fp);
@@ -47,21 +35,23 @@ int get_random_word(file f, char *buffer){
 int main(int argc, char **argv) {
     // Random seed.
     srand(time(NULL));
-
-    // Opens target file and writes initial phrase.
-    FILE *out = fopen("out.txt", "w");
-    fputs("You're really gonna mess with my squad? We have", out);
-
-    // Opens dictionary files.
-    file sup = getFile("sup.txt");
-    file adj = getFile("adj.txt");
-    file noun = getFile("noun.txt");
-    file comp = getFile("comp.txt");
     
-    // Gets number of threads and desired iterations.
-    int j = atoi(argv[1]), k = atoi(argv[2]);
+    // Thread count.
+    int t = atoi(argv[1]);
+    // Iteration count.
+    int j = atoi(argv[3]);
+    // Opens file from filename and writes initial phrase.
+    FILE *out = fopen(argv[2], "w");
+    fputs("You're really gonna mess with my squad? We have", out);
+    
+    // Opens dictionary files.
+    file sup = get_file("dictionary/sup.txt");
+    file adj = get_file("dictionary/adj.txt");
+    file noun = get_file("dictionary/noun.txt");
+    file comp = get_file("dictionary/comp.txt");
+    
     // Allocates threads.
-    omp_set_num_threads(k);
+    omp_set_num_threads(t);
 
     #pragma omp parallel
     {
@@ -72,7 +62,7 @@ int main(int argc, char **argv) {
         char adjBuffer[MAX_LINE_LENGTH];
         char nounBuffer[MAX_LINE_LENGTH];
         char compBuffer[MAX_LINE_LENGTH];
-
+    
         int i, l;
         for(i = 0; i < j; i++){
             l = 0;
@@ -91,7 +81,7 @@ int main(int argc, char **argv) {
             fputs(outBuffer, out);
         }
     }
-
+    
     // Closes files.
     fclose(out);
     fclose(noun.fp);
