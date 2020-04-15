@@ -8,8 +8,8 @@
 
 // Struct containing the file pointer and size.
 typedef struct _file{
-    FILE *fp;
-    int size;
+    FILE    *fp;
+    int     size;
 } file;
 
 // Gets file from path and calculate it's size.

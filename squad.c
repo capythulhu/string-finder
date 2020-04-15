@@ -35,14 +35,14 @@ int get_random_word(file f, char *buffer){
 int main(int argc, char **argv) {
     // Random seed.
     srand(time(NULL));
-    
+
     // Thread count.
     int t = atoi(argv[1]);
     // Iteration count.
     int j = atoi(argv[3]);
     // Opens file from filename and writes initial phrase.
     FILE *out = fopen(argv[2], "w");
-    fputs("You're really gonna mess with my squad? We have", out);
+    fputs("Are you really gonna mess with my squad? We have", out);
     
     // Opens dictionary files.
     file sup = get_file("dictionary/sup.txt");
@@ -64,6 +64,7 @@ int main(int argc, char **argv) {
         char compBuffer[MAX_LINE_LENGTH];
     
         int i, l;
+        #pragma omp for
         for(i = 0; i < j; i++){
             l = 0;
             // Generates words and fill file.
