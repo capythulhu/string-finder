@@ -11,7 +11,7 @@ typedef struct _file{
     int size;
 } file;
 
-// Get file from path and calculate it's size.
+// Gets file from path and calculate it's size.
 file getFile(char *path){
     file f;
     char buffer[MAX_LINE_LENGTH];
@@ -22,14 +22,14 @@ file getFile(char *path){
     return f;
 }
 
-// Remove the character '\n' from the end of string
+// Removes the character '\n' from the end of string
 void rem_new_line(char *s){
     int i = 0;
     while(s[i] != '\n') i++;
     s[i] = '\0';
 }
 
-// Get random word from file, and writes it into buffer
+// Gets a random word from file, and writes it into buffer
 int get_random_word(file f, char *buffer){
     int line = rand() % f.size, i = 0;
     while(fgets(buffer, MAX_LINE_LENGTH, f.fp) != NULL){
@@ -58,14 +58,14 @@ int main(int argc, char **argv) {
     file noun = getFile("noun.txt");
     file comp = getFile("comp.txt");
     
-    // Get number of threads and desired iterations.
+    // Gets number of threads and desired iterations.
     int j = atoi(argv[1]), k = atoi(argv[2]);
-    // Allocate threads.
+    // Allocates threads.
     omp_set_num_threads(k);
 
     #pragma omp parallel
     {
-        // Allocate buffers for each word.
+        // Allocates buffers for each word.
         char outBuffer[MAX_LINE_LENGTH];
 
         char supBuffer[MAX_LINE_LENGTH];
@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
         int i, l;
         for(i = 0; i < j; i++){
             l = 0;
-            // Generate words and fill file.
+            // Generates words and fill file.
             get_random_word(sup, supBuffer);
             get_random_word(adj, adjBuffer);
             get_random_word(noun, nounBuffer);
