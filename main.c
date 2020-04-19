@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "omp.h"
-#define MAX_BUFFER_LENGTH 1024 * 10
+#define BUFFER_LENGTH 1024 * 10
 
 int main(int argc, char **argv){
     // Allocates threads
@@ -22,13 +22,14 @@ int main(int argc, char **argv){
     {
         // Opens file and allocate buffer
         FILE *f = fopen(argv[2], "r");
-        char buffer[MAX_BUFFER_LENGTH + 1];
+        char buffer[BUFFER_LENGTH + 1];
         
         unsigned long i;
-        int j, k = 0, l = strlen(argv[3]) - 1, m = 0;
+        int j, k = 0, l = strlen(argv[3]) - 1;
         #pragma omp for reduction(+:occurrences)
         for(i = 0; i < size; i += sizeof buffer){
             // Gets new bytes
+            fseeko64(f, i, SEEK_SET);
             fgets(buffer, sizeof buffer, f);
             // Reads each buffer
             for(j = 0; j < sizeof buffer; j++){
