@@ -1,47 +1,59 @@
-// Header guards.
-#ifndef STDIO_H
-#define STDIO_H
 #include <stdio.h>
-#endif
-
 #include <stdlib.h>
 #include <string.h>
-#include "file.h"
 #include "omp.h"
-#define MAX_BUFFER_LENGTH 2
-
-typedef struct _search{
-    unsigned long   occurrences;
-    double          time;
-} search;
-
-search search_concurrent(FILE *f, char *word){
-    search output = {0, 0};
-    int j = 0;
-    output.time = omp_get_wtime();
-    char buffer[MAX_BUFFER_LENGTH + 1];
-    while(fgets(buffer, sizeof buffer, f) != NULL){
-        int i;
-        for(i = 0; i < sizeof buffer; i++){
-            if(buffer[i] == '\0') continue;
-            if(buffer[i] == word[j]){
-                if(j == strlen(word) - 1) output.occurrences++;
-                else j++;
-            } else j = 0;
-        }
-    }
-    output.time = omp_get_wtime() - output.time;
-    return output;
-}
+#define MAX_BUFFER_LENGTH 1024 * 10
 
 int main(int argc, char **argv){
-    // Thread count.
+    // Allocates threads
     int t = atoi(argv[1]);
-    // Get file from filename.
-    file f = get_file(argv[2]);
+    omp_set_num_threads(t);
     
-    search s = search_concurrent(f.fp, argv[3]);
+    // Gets file size
+    FILE *a = fopen(argv[2], "r");
+    fseeko64(a, 0, SEEK_END);
+    unsigned long long size = ftello64(a);
+    fclose(a);
 
-    printf("Count: %li, Time: %lf", s.occurrences, s.time);
-    fclose(f.fp);
+    // Starts recording time
+    unsigned long occurrences = 0;
+    double time = omp_get_wtime();
+    #pragma omp parallel
+    {
+        // Opens file and allocate buffer
+        FILE *f = fopen(argv[2], "r");
+        char buffer[MAX_BUFFER_LENGTH + 1];
+        
+        unsigned long i;
+        int j, k = 0, l = strlen(argv[3]) - 1, m = 0;
+        #pragma omp for reduction(+:occurrences)
+        for(i = 0; i < size; i += sizeof buffer){
+            // Gets new bytes
+            fgets(buffer, sizeof buffer, f);
+            // Reads each buffer
+            for(j = 0; j < sizeof buffer; j++){
+                if(buffer[j] == '\0') break;
+                if(buffer[j] == argv[3][k]){
+                    // If the loop is about to finish
+                    // and the buffer has part of a 
+                    // possible occurrence, load more bytes.
+                    if(j == sizeof buffer - 1){
+                        // Gets new bytes
+                        fgets(buffer, l - k, f);
+                        j = -1;
+                    }
+                    if(k == l) {
+                        // Increments occurrence
+                        occurrences++;
+                        k = 0;
+                    }
+                    else k++;
+                } else k = 0;
+            }
+        }
+        fclose(f);
+    }
+    // Gets the time difference
+    time = omp_get_wtime() - time;
+    printf("Occurrences: %i, Time: %lf", occurrences, time);
 }

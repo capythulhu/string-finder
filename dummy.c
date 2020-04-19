@@ -5,6 +5,7 @@
 #include "omp.h"
 
 #define MAX_LINE_LENGTH 1<<8
+#define MAX_BUFFER_ITERACTIONS 10
 
 // Dictionary structure
 typedef struct _dictionary{
@@ -67,31 +68,40 @@ int main(int argc, char **argv) {
     // Allocates threads.
     omp_set_num_threads(t);
 
+    double time = omp_get_wtime();
     #pragma omp parallel
     {
         // Allocates buffers for each word.
-        char outBuffer[MAX_LINE_LENGTH];
+        char *outBuffer = malloc((MAX_LINE_LENGTH) * MAX_BUFFER_ITERACTIONS);
         
         // Opens output file again.
         FILE *out = fopen(argv[2], "w");
 
-        int i;
+        int i, k;
         #pragma omp for
         for(i = 0; i < j; i++){
-            // Generates words and fill file.
-            sprintf(outBuffer, " the %s %s %s that's way %s", get_random_word(sup), 
-                get_random_word(adj), get_random_word(noun), get_random_word(comp));
-            sprintf(outBuffer, "%s than your %s %s %s", outBuffer, get_random_word(sup),
-                get_random_word(adj), get_random_word(noun));
-            sprintf(outBuffer, "%s,", outBuffer);
-            fputs(outBuffer, out);
+            strcpy(outBuffer, "\0");
+            for(k = 0; k < MAX_BUFFER_ITERACTIONS; k++){
+                // Generates words and fill file.
+                sprintf(outBuffer, " the %s %s %s that's way %s", get_random_word(sup), 
+                    get_random_word(adj), get_random_word(noun), get_random_word(comp));
+                sprintf(outBuffer, "%s than your %s %s %s", outBuffer, get_random_word(sup),
+                    get_random_word(adj), get_random_word(noun));
+                sprintf(outBuffer, "%s,", outBuffer);
+                fputs(outBuffer, out);
+            }
         }
         // Closes files.
         fclose(out);
-        free_dictionary(sup);
-        free_dictionary(adj);
-        free_dictionary(noun);
-        free_dictionary(comp);
     }
+    time = omp_get_wtime() - time;
+    
+    // Frees dictionaries.
+    free_dictionary(sup);
+    free_dictionary(adj);
+    free_dictionary(noun);
+    free_dictionary(comp);
     fclose(f);
+
+    printf("Iteractions: %li, Time: %lf", j, time);
 }
