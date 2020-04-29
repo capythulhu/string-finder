@@ -26,7 +26,7 @@ int main(int argc, char **argv){
         
         unsigned long long i;
         int j, k = 0, l = strlen(argv[3]) - 1;
-        #pragma omp for reduction(+:occurrences)
+        #pragma omp for schedule(dynamic) reduction(+:occurrences)
         for(i = 0; i < size; i += sizeof buffer){
             // Gets new bytes
             fseeko64(f, i, SEEK_SET);
