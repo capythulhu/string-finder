@@ -24,7 +24,7 @@ int main(int argc, char **argv){
         FILE *f = fopen(argv[2], "r");
         char buffer[BUFFER_LENGTH + 1];
         
-        unsigned long i;
+        unsigned long long i;
         int j, k = 0, l = strlen(argv[3]) - 1;
         #pragma omp for reduction(+:occurrences)
         for(i = 0; i < size; i += sizeof buffer){
@@ -33,7 +33,7 @@ int main(int argc, char **argv){
             fgets(buffer, sizeof buffer, f);
             // Reads each buffer
             for(j = 0; j < sizeof buffer; j++){
-                if(buffer[j] == '\0') break;
+                //if(buffer[j] == '\0') break;
                 if(buffer[j] == argv[3][k]){
                     // If the loop is about to finish
                     // and the buffer has part of a 
